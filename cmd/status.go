@@ -61,8 +61,8 @@ type CliResponse struct {
 }
 
 func (c *CliResponse) output() (output string) {
-	fmt.Printf("status   \t build_url\n")
-	fmt.Printf("%v \t %v \n", c.BuildStatus, c.BuildUrl)
+	fmt.Printf("status\tbuild_url\n")
+	fmt.Printf("%v\t%v \n", c.BuildStatus, c.BuildUrl)
 	// fmt.Printf("{'build_url': '%v', 'status': '%v'}", c.BuildUrl, c.BuildStatus)
 	return
 }
