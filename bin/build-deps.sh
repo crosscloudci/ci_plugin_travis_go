@@ -12,7 +12,7 @@ ls -al
 # export GOPATH="/opt/go/"
 # export PATH="$PATH:$GOPATH/bin"
 export PATH=/usr/local/go/bin:$PATH
-export GOPATH=/opt/go/
+export GOPATH=/usr/bin/go
 export PATH=$PATH:$GOPATH/bin
 # apk del .build-deps
 # go version
