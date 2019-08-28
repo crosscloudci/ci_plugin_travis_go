@@ -61,6 +61,7 @@ type CliResponse struct {
 }
 
 func (c *CliResponse) output() (output string) {
+	//TODO if -q parameter don't add header
 	fmt.Printf("status\tbuild_url\n")
 	fmt.Printf("%v\t%v \n", c.BuildStatus, c.BuildUrl)
 	// fmt.Printf("{'build_url': '%v', 'status': '%v'}", c.BuildUrl, c.BuildStatus)
@@ -137,6 +138,8 @@ var statusCmd = &cobra.Command{
 			case "passed":
 				returned_build_status = "success"
 			case "errored":
+				returned_build_status = "failed"
+			case "failed":
 				returned_build_status = "failed"
 			default:
 				os.Stdout.Sync()
