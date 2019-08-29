@@ -76,7 +76,7 @@ var statusCmd = &cobra.Command{
 	Long:             `This command takes a project name, commit ref, or tag and return success, failure, or running.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client := travis.NewClient(travis.ApiOrgUrl, os.Getenv("TRAVIS_API_KEY"))
-		opt := &travis.BuildsByRepoOption{Limit: 50, SortBy: "created_at", Include: []string{"build.commit", "build.branch", "build.repository", "build.jobs"}}
+		opt := &travis.BuildsByRepoOption{Limit: 50, Include: []string{"build.commit", "build.branch", "build.repository", "build.jobs"}}
 		build, _, err := client.Builds.ListByRepoSlug(context.Background(), viper.GetString("project"), opt)
 
 		if err != nil {
