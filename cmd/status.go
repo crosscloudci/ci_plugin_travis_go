@@ -28,7 +28,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	// "reflect"
-	// "strings"
+	"strings"
 )
 
 // "https://travis-ci.org/crosscloudci/testproj/builds/572521581"
@@ -115,15 +115,34 @@ var statusCmd = &cobra.Command{
 		// spew.Dump("resp.FirstPage in loop %v", resp.FirstPage)
 		// spew.Dump("resp.NextPage in loop %v", resp.NextPage)
 		// spew.Dump("resp.LastPage in loop %v", resp.LastPage)
+		var done bool
+		var returned_build_status string
+		var returned_build_url string
+		// cli_response = CliResponse{}
+		done = false
 		for {
+			// build, _, err := client.Builds.ListByRepoSlug(context.Background(), viper.GetString("project"), opt)
 			build, resp, err := client.Builds.ListByRepoSlug(context.Background(), viper.GetString("project"), opt)
 			if err != nil {
 				panic(err)
 			}
 			for _, b := range build {
 				spew.Dump("build by rep slug %v", *b.Commit.Sha)
+				if resp.NextPage == nil {
+					break
+				}
+				arg_commit := viper.GetString("commit")
+				if (*b.Commit.Sha)[:6] == arg_commit[:6] {
+					// job = retrieveJob(travis_build.Id)
+					returned_build_status = *b.State
+					returned_build_url = *b.Href
+					if viper.GetBool("verbose") {
+						spew.Dump("travis build", b)
+					}
+					done = true
+				}
 			}
-			if resp.NextPage == nil {
+			if done == true {
 				break
 			}
 			opt.Limit = resp.NextPage.Limit
@@ -195,7 +214,7 @@ var statusCmd = &cobra.Command{
 		// }
 
 		// 	var retrieveBuildStatus = func(b []*travis.Build) (cli_response CliResponse) {
-		// 		cli_response = CliResponse{}
+		// cli_response = CliResponse{}
 		// 		travis_build := Build{}
 		// 		// job := Job{}
 		// 		var returned_build_status string
@@ -220,37 +239,41 @@ var statusCmd = &cobra.Command{
 		// 			}
 		// 		}
 		//
-		// 		switch returned_build_status {
-		// 		case "received":
-		// 			returned_build_status = "running"
-		// 		case "created":
-		// 			returned_build_status = "running"
-		// 		case "started":
-		// 			returned_build_status = "running"
-		// 		case "passed":
-		// 			returned_build_status = "success"
-		// 		case "errored":
-		// 			returned_build_status = "failed"
-		// 		case "failed":
-		// 			returned_build_status = "failed"
-		// 		default:
-		// 			os.Stdout.Sync()
-		// 			fmt.Fprintf(os.Stderr, "ERROR: %v \n", "failed to find project with given commit")
-		// 			os.Exit(1)
-		// 		}
-		//
-		// 		// url_prefix := fmt.Sprintf("https://travis-ci.org/%s/jobs", travis_build.Repository.Slug)
-		// 		// cli_response.JobUrl = strings.Replace(job.Href, "/job", url_prefix, 1)
-		// 		url_prefix := fmt.Sprintf("https://travis-ci.org/%s/builds", travis_build.Repository.Slug)
-		// 		cli_response.BuildUrl = strings.Replace(returned_build_url, "/build", url_prefix, 1)
-		// 		cli_response.BuildStatus = returned_build_status
-		// 		return
-		// 	}
-		// 	cli_proxy_response := retrieveBuildStatus(build)
-		// 	// number := cmd.Flag("project")
-		// 	// spew.Dump("this is project", number.Value.String())
-		// 	// spew.Dump("this is viper project", viper.GetString("project"))
-		// 	fmt.Printf(cli_proxy_response.output())
+		var cli_response CliResponse
+		cli_response = CliResponse{}
+		switch returned_build_status {
+		case "received":
+			returned_build_status = "running"
+		case "created":
+			returned_build_status = "running"
+		case "started":
+			returned_build_status = "running"
+		case "passed":
+			returned_build_status = "success"
+		case "errored":
+			returned_build_status = "failed"
+		case "failed":
+			returned_build_status = "failed"
+		default:
+			os.Stdout.Sync()
+			fmt.Fprintf(os.Stderr, "ERROR: %v \n", "failed to find project with given commit")
+			os.Exit(1)
+		}
+
+		// url_prefix := fmt.Sprintf("https://travis-ci.org/%s/jobs", travis_build.Repository.Slug)
+		// cli_response.JobUrl = strings.Replace(job.Href, "/job", url_prefix, 1)
+		// url_prefix := fmt.Sprintf("https://travis-ci.org/%s/builds", travis_build.Repository.Slug)
+		url_prefix := fmt.Sprintf("https://travis-ci.org/%s/builds", viper.GetString("project"))
+		cli_response.BuildUrl = strings.Replace(returned_build_url, "/build", url_prefix, 1)
+		cli_response.BuildStatus = returned_build_status
+		// return
+		// }
+		// cli_proxy_response := retrieveBuildStatus(build)
+		// number := cmd.Flag("project")
+		// spew.Dump("this is project", number.Value.String())
+		// spew.Dump("this is viper project", viper.GetString("project"))
+		// fmt.Printf(cli_proxy_response.output())
+		fmt.Printf(cli_response.output())
 	},
 }
 
