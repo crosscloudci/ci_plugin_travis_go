@@ -20,12 +20,15 @@ import (
 	"os"
 
 	"context"
-	"encoding/json"
+	// "encoding/json"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/shuheiktgw/go-travis"
+	"github.com/vulk/go-travis"
+	// "github.com/koshatul/go-travis"
+	// "github.com/shuheiktgw/go-travis"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"strings"
+	// "reflect"
+	// "strings"
 )
 
 // "https://travis-ci.org/crosscloudci/testproj/builds/572521581"
@@ -46,11 +49,34 @@ type Repository struct {
 }
 
 type Build struct {
-	Id         uint
+	// Id         uint
 	State      string
 	Commit     Commit
 	Repository Repository
 	Href       string `json:"@href"`
+	Pagination struct {
+		Limit   int  `json:"limit"`
+		Offset  int  `json:"offset"`
+		Count   int  `json:"count"`
+		IsFirst bool `json:"is_first"`
+		IsLast  bool `json:"is_last"`
+		Next    struct {
+			Href   string `json:"@href"`
+			Offset int    `json:"offset"`
+			Limit  int    `json:"limit"`
+		} `json:"next"`
+		Prev  interface{} `json:"prev"`
+		First struct {
+			Href   string `json:"@href"`
+			Offset int    `json:"offset"`
+			Limit  int    `json:"limit"`
+		} `json:"first"`
+		Last struct {
+			Href   string `json:"@href"`
+			Offset int    `json:"offset"`
+			Limit  int    `json:"limit"`
+		} `json:"last"`
+	} `json:"@pagination"`
 }
 
 type CliResponse struct {
@@ -76,13 +102,78 @@ var statusCmd = &cobra.Command{
 	Long:             `This command takes a project name, commit ref, or tag and return success, failure, or running.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client := travis.NewClient(travis.ApiOrgUrl, os.Getenv("TRAVIS_API_KEY"))
-		opt := &travis.BuildsByRepoOption{Limit: 50, Include: []string{"build.commit", "build.branch", "build.repository", "build.jobs"}}
-		build, _, err := client.Builds.ListByRepoSlug(context.Background(), viper.GetString("project"), opt)
-
-		if err != nil {
-			fmt.Println("Build.Find returned error: ", err)
-			os.Exit(1)
+		// opt := &travis.BuildsOption{Limit: 800, Include: []string{"build.commit", "build.branch", "build.repository", "build.jobs"}}
+		// opt := &travis.BuildsByRepoOption{Limit: 3, Include: []string{"build.commit", "build.branch", "build.repository", "build.jobs"}}
+		opt := &travis.BuildsByRepoOption{Limit: 3, Include: []string{"build.commit"}}
+		// build, resp, err := client.Builds.ListByRepoSlug(context.Background(), viper.GetString("project"), opt)
+		// build, resp, err := client.Repositories.Find(context.Background(), viper.GetString("project"), opt)
+		// if err != nil {
+		// 	panic(err)
+		// }
+		// spew.Dump("build by rep slug %v", build)
+		// spew.Dump("resp by rep slug %v", resp)
+		// spew.Dump("resp.FirstPage in loop %v", resp.FirstPage)
+		// spew.Dump("resp.NextPage in loop %v", resp.NextPage)
+		// spew.Dump("resp.LastPage in loop %v", resp.LastPage)
+		for {
+			build, resp, err := client.Builds.ListByRepoSlug(context.Background(), viper.GetString("project"), opt)
+			if err != nil {
+				panic(err)
+			}
+			for _, b := range build {
+				spew.Dump("build by rep slug %v", *b.Commit.Sha)
+			}
+			if resp.NextPage == nil {
+				break
+			}
+			opt.Limit = resp.NextPage.Limit
+			opt.Offset = resp.NextPage.Offset
 		}
+
+		// 			arg_commit := viper.GetString("commit")
+		// 			if travis_build.Commit.Sha[:6] == arg_commit[:6] {
+		// 				// job = retrieveJob(travis_build.Id)
+		// 				returned_build_status = travis_build.State
+		// 				returned_build_url = travis_build.Href
+		// 				if viper.GetBool("verbose") {
+		// 					spew.Dump("travis build", travis_build)
+		// 				}
+		// 			}
+
+		// fooType := reflect.TypeOf(build)
+		// for i := 0; i < fooType.NumMethod(); i++ {
+		// 	method := fooType.Method(i)
+		// 	fmt.Println(method.Name)
+		// }
+		// if err != nil {
+		// 	fmt.Println("Build.Find returned error: ", err)
+		// 	os.Exit(1)
+		// }
+
+		// opts := &travis.RepositoriesOption{}
+		//
+		// allBuild := []*travis.Build{}
+		// for {
+		// 	// builds, resp, err := client.Builds.ListByRepoSlug(context.Background(), viper.GetString("project"), opt)
+		// 	builds, resp, err := client.Builds.List(context.Background(), opt)
+		// 	// repos, resp, err := client.Repositories.List(context.Background(), opt)
+		// 	if err != nil {
+		// 		panic(err)
+		// 	}
+		// 	allBuild = append(allBuild, builds...)
+		// 	// spew.Dump("resp in loop %v", resp)
+		// 	spew.Dump("resp.FirstPage in loop %v", resp.FirstPage)
+		// 	spew.Dump("resp.NextPage in loop %v", resp.NextPage)
+		// 	spew.Dump("resp.LastPage in loop %v", resp.LastPage)
+		// 	if resp.NextPage == nil {
+		// 		break
+		// 	}
+		// 	opt.Limit = resp.NextPage.Limit
+		// 	opt.Offset = resp.NextPage.Offset
+		// 	// spew.Dump("opt in loop %v", resp)
+		// }
+		// spew.Dump("opt %v", opt)
+		// spew.Dump("guts %v", allBuild)
 
 		// var retrieveJob = func(build_id uint) (job Job) {
 		// 	job = Job{}
@@ -103,62 +194,63 @@ var statusCmd = &cobra.Command{
 		// 	return
 		// }
 
-		var retrieveBuildStatus = func(b []*travis.Build) (cli_response CliResponse) {
-			cli_response = CliResponse{}
-			travis_build := Build{}
-			// job := Job{}
-			var returned_build_status string
-			var returned_build_url string
-			for _, b := range b {
-				build_json, _ := json.Marshal(b)
-				err := json.Unmarshal(build_json, &travis_build)
-				if err != nil {
-					panic(err)
-					os.Exit(1)
-				}
-
-				arg_commit := viper.GetString("commit")
-				if travis_build.Commit.Sha[:6] == arg_commit[:6] {
-					// job = retrieveJob(travis_build.Id)
-					returned_build_status = travis_build.State
-					returned_build_url = travis_build.Href
-					if viper.GetBool("verbose") {
-						spew.Dump("travis build", travis_build)
-					}
-				}
-			}
-
-			switch returned_build_status {
-			case "received":
-				returned_build_status = "running"
-			case "created":
-				returned_build_status = "running"
-			case "started":
-				returned_build_status = "running"
-			case "passed":
-				returned_build_status = "success"
-			case "errored":
-				returned_build_status = "failed"
-			case "failed":
-				returned_build_status = "failed"
-			default:
-				os.Stdout.Sync()
-				fmt.Fprintf(os.Stderr, "ERROR: %v \n", "failed to find project with given commit")
-				os.Exit(1)
-			}
-
-			// url_prefix := fmt.Sprintf("https://travis-ci.org/%s/jobs", travis_build.Repository.Slug)
-			// cli_response.JobUrl = strings.Replace(job.Href, "/job", url_prefix, 1)
-			url_prefix := fmt.Sprintf("https://travis-ci.org/%s/builds", travis_build.Repository.Slug)
-			cli_response.BuildUrl = strings.Replace(returned_build_url, "/build", url_prefix, 1)
-			cli_response.BuildStatus = returned_build_status
-			return
-		}
-		cli_proxy_response := retrieveBuildStatus(build)
-		// number := cmd.Flag("project")
-		// spew.Dump("this is project", number.Value.String())
-		// spew.Dump("this is viper project", viper.GetString("project"))
-		fmt.Printf(cli_proxy_response.output())
+		// 	var retrieveBuildStatus = func(b []*travis.Build) (cli_response CliResponse) {
+		// 		cli_response = CliResponse{}
+		// 		travis_build := Build{}
+		// 		// job := Job{}
+		// 		var returned_build_status string
+		// 		var returned_build_url string
+		// 		// spew.Dump("this is count %v", travis_build.Pagination)
+		// 		for _, b := range b {
+		// 			build_json, _ := json.Marshal(b)
+		// 			err := json.Unmarshal(build_json, &travis_build)
+		// 			if err != nil {
+		// 				panic(err)
+		// 				os.Exit(1)
+		// 			}
+		//
+		// 			arg_commit := viper.GetString("commit")
+		// 			if travis_build.Commit.Sha[:6] == arg_commit[:6] {
+		// 				// job = retrieveJob(travis_build.Id)
+		// 				returned_build_status = travis_build.State
+		// 				returned_build_url = travis_build.Href
+		// 				if viper.GetBool("verbose") {
+		// 					spew.Dump("travis build", travis_build)
+		// 				}
+		// 			}
+		// 		}
+		//
+		// 		switch returned_build_status {
+		// 		case "received":
+		// 			returned_build_status = "running"
+		// 		case "created":
+		// 			returned_build_status = "running"
+		// 		case "started":
+		// 			returned_build_status = "running"
+		// 		case "passed":
+		// 			returned_build_status = "success"
+		// 		case "errored":
+		// 			returned_build_status = "failed"
+		// 		case "failed":
+		// 			returned_build_status = "failed"
+		// 		default:
+		// 			os.Stdout.Sync()
+		// 			fmt.Fprintf(os.Stderr, "ERROR: %v \n", "failed to find project with given commit")
+		// 			os.Exit(1)
+		// 		}
+		//
+		// 		// url_prefix := fmt.Sprintf("https://travis-ci.org/%s/jobs", travis_build.Repository.Slug)
+		// 		// cli_response.JobUrl = strings.Replace(job.Href, "/job", url_prefix, 1)
+		// 		url_prefix := fmt.Sprintf("https://travis-ci.org/%s/builds", travis_build.Repository.Slug)
+		// 		cli_response.BuildUrl = strings.Replace(returned_build_url, "/build", url_prefix, 1)
+		// 		cli_response.BuildStatus = returned_build_status
+		// 		return
+		// 	}
+		// 	cli_proxy_response := retrieveBuildStatus(build)
+		// 	// number := cmd.Flag("project")
+		// 	// spew.Dump("this is project", number.Value.String())
+		// 	// spew.Dump("this is viper project", viper.GetString("project"))
+		// 	fmt.Printf(cli_proxy_response.output())
 	},
 }
 

@@ -20,6 +20,7 @@ require (
 	github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6 // indirect
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/koshatul/go-travis v0.2.2-0.20190609230405-a1e640442906
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
@@ -36,7 +37,7 @@ require (
 	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4 // indirect
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
-	github.com/shuheiktgw/go-travis v0.2.3
+	github.com/shuheiktgw/go-travis v0.2.4
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v0.0.5
@@ -45,6 +46,7 @@ require (
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/ugorji/go v1.1.7 // indirect
+	github.com/vulk/go-travis v0.2.2-0.20190609230405-a1e640442906
 	go.etcd.io/bbolt v1.3.3 // indirect
 	goa.design/goa v2.0.3+incompatible
 	goa.design/goa/v3 v3.0.3
