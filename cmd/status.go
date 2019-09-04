@@ -54,9 +54,23 @@ var statusCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		client := travis.NewClient(travis.ApiOrgUrl, os.Getenv("TRAVIS_API_KEY"))
 		opt := &travis.BuildsByRepoOption{Limit: 100, Include: []string{"build.commit"}}
+		// opt := &travis.BuildsByRepoOption{Limit: 100, SortBy: "finished_at:desc", Include: []string{"build.commit"}}
+		// opt := &travis.BuildsByRepoOption{Limit: 100, SortBy: "id:asc", Include: []string{"build.commit"}}
 		var returned_build_status string
 		var returned_build_url string
 		var cli_response CliResponse
+
+		// Generics anyone?
+		var reverse = func(lst []*travis.Build) chan *travis.Build {
+			ret := make(chan *travis.Build)
+			go func() {
+				for i, _ := range lst {
+					ret <- lst[len(lst)-1-i]
+				}
+				close(ret)
+			}()
+			return ret
+		}
 
 		var retrieveMatchingBuildStatus = func() {
 			var done bool
@@ -66,8 +80,11 @@ var statusCmd = &cobra.Command{
 				if err != nil {
 					panic(err)
 				}
-				for _, b := range build {
-					// spew.Dump("build by rep slug %v", *b.Commit.Sha)
+				for b := range reverse(build) {
+					// spew.Dump("build by rep commit.sha %v", *b.Commit.Sha)
+					// spew.Dump("build by rep build.number %v", *b.Number)
+					// spew.Dump("build by rep build id %v", *b.Id)
+					// spew.Dump("build by rep build.commit.id %v", *b.Commit.Id)
 					if resp.NextPage == nil {
 						break
 					}
