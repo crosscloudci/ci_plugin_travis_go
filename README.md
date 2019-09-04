@@ -1,5 +1,9 @@
 # ci_plugin_travis_go
 
+#v0.0.5
+
+go-travis client results now reversed
+
 ##v0.0.1
 
 CLI needs to accept the following args
