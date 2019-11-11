@@ -1,12 +1,6 @@
 # ci_plugin_travis_go
 
-#v0.0.5
-
-go-travis client results now reversed
-
-##v0.0.1
-
-##The CLI needs to accept the following args
+## The CLI needs to accept the following args
 
 ## Arguments
 1.  -p or --project is the project name in the format of orgname/project
