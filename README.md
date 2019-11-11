@@ -15,7 +15,7 @@
 1. The **build_url** should be the url where the status was found
 
 ```
-./ci_plugin_travis_go status "linkerd/linkerd2" -c f27d7b65
+./ci_plugin_travis_go status -p "linkerd/linkerd2" -c f27d7b65
 status  build_url
 success https://travis-ci.org/crosscloudci/testproj/builds/572521581 
 ```
