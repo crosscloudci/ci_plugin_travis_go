@@ -77,6 +77,8 @@ var statusCmd = &cobra.Command{
 			done = false
 			for {
 				build, resp, err := client.Builds.ListByRepoSlug(context.Background(), viper.GetString("project"), opt)
+				// spew.Dump("err %v", err)
+				// spew.Dump("build %v", build)
 				if err != nil {
 					panic(err)
 				}
@@ -85,9 +87,6 @@ var statusCmd = &cobra.Command{
 					// spew.Dump("build by rep build.number %v", *b.Number)
 					// spew.Dump("build by rep build id %v", *b.Id)
 					// spew.Dump("build by rep build.commit.id %v", *b.Commit.Id)
-					if resp.NextPage == nil {
-						break
-					}
 					arg_commit := viper.GetString("commit")
 					if (*b.Commit.Sha)[:6] == arg_commit[:6] {
 						returned_build_status = *b.State
@@ -97,6 +96,9 @@ var statusCmd = &cobra.Command{
 						}
 						done = true
 					}
+				}
+				if resp.NextPage == nil {
+					done = true
 				}
 				if done == true {
 					break
